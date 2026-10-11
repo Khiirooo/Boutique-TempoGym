@@ -1386,7 +1386,7 @@ window.TG_apply = function(data){
 window.TG_isCloud = !!(window.TG_BACKEND.url && window.TG_BACKEND.anonKey);
 /* TG_V4_SERVER_BOOT */
 window.TG_PASSWORD_MODE = !!window.TG_PASSWORD_MODE;
-window.TG_DEMO_MODE = false; window.TG_STATIC_PAGES = true; // Publication statique sans commandes ni comptes serveur.
+window.TG_DEMO_MODE = true; window.TG_STATIC_PAGES = true; // GitHub Pages : accès aux panneaux en mode local, sans base de données partagée.
 if(window.TG_DEMO_MODE||window.TG_STATIC_PAGES){
   try{ if(localStorage.getItem('tg_dev_enabled_v53')!=='false' && sessionStorage.getItem('tg_dev_ok_v53')!=='yes') document.documentElement.classList.add('tg-dev-locked'); }catch(_){document.documentElement.classList.add('tg-dev-locked');}
 }
@@ -7488,7 +7488,7 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
 </script>
 
 <script>
-/* V5 : moteur DÉMONSTRATION uniquement pour fichier ouvert en double-clic (file://).
+/* V5 : moteur de test local (fichier HTML ou GitHub Pages).
    Aucun mot de passe, commande réelle ou donnée privée dans cette page. */
 (function(){
  if(!window.TG_DEMO_MODE)return;
@@ -7579,7 +7579,7 @@ html.tg-dev-locked body>*:not(#tg-development-gate){visibility:hidden!important}
 <script>
 (function(){
  const gate=document.getElementById('tg-development-gate'),form=document.getElementById('tg-development-form');
- function refresh(){if(!window.TG_DEMO_MODE&&!window.TG_STATIC_PAGES)return;let enabled=true,ok=false;try{enabled=window.TG_STATIC_PAGES?true:localStorage.getItem('tg_dev_enabled_v53')!=='false';ok=sessionStorage.getItem('tg_dev_ok_v53')==='yes';}catch(_){ }const locked=enabled&&!ok;gate.hidden=!locked;document.documentElement.classList.toggle('tg-dev-locked',locked);if(locked)document.getElementById('tg-development-password').focus();}
+ function refresh(){if(!window.TG_DEMO_MODE&&!window.TG_STATIC_PAGES)return;let enabled=true,ok=false;try{enabled=localStorage.getItem('tg_dev_enabled_v53')!=='false';ok=sessionStorage.getItem('tg_dev_ok_v53')==='yes';}catch(_){ }const locked=enabled&&!ok;gate.hidden=!locked;document.documentElement.classList.toggle('tg-dev-locked',locked);if(locked)document.getElementById('tg-development-password').focus();}
  form.addEventListener('submit',function(e){e.preventDefault();if(form.querySelector('input').value==='tempogym2026'){try{sessionStorage.setItem('tg_dev_ok_v53','yes')}catch(_){}document.getElementById('tg-development-error').textContent='';form.reset();refresh();}else{document.getElementById('tg-development-error').textContent='Mot de passe incorrect.';form.querySelector('input').select();}});
  window.TGDevDemo={refresh};refresh();
 })();
@@ -7688,12 +7688,12 @@ window.TGAdmin = (function(){
   const el=ui('tg-admin-warning');
   if(serverMode()){el.textContent='Mode serveur privé : seuls les titulaires du mot de passe administrateur peuvent modifier le site. Les commandes des parents sont enregistrées côté serveur.';ui('tg-mode').textContent='Serveur privé';return;}
   el.textContent=cloud()?'Mode partagé : seuls les comptes autorisés peuvent publier. Les modifications deviennent visibles sur tous les appareils après actualisation.':
-    'MODE DÉMONSTRATION LOCALE : les modifications sont sauvegardées uniquement dans CE navigateur. Elles ne seront PAS visibles par les autres visiteurs. Connecte Supabase pour publier réellement.';
+    'GITHUB PAGES · MODE LOCAL : les modifications sont sauvegardées seulement dans ce navigateur. Les autres visiteurs ne les verront pas. Pour les partager, un stockage sécurisé sera nécessaire.';
   ui('tg-mode').textContent=cloud()?'Base de données partagée':'Démo locale';
  }
  async function renderAccessSettings(){
    const el=ui('tg-admin-editor');
-   el.innerHTML=`<div class="tg-card"><h3>Visibilité du site</h3><p class="tg-lead">Quand le mode développement est activé, les visiteurs voient l'écran d'accès avant le site. L'accès est protégé côté PHP sur OVH, et simulé uniquement en local.</p><p id="tg-access-status" role="status" aria-live="polite">Chargement…</p><label class="tg-label" style="display:flex;align-items:center;gap:12px;margin:14px 0"><input id="tg-development-enabled" type="checkbox" style="width:21px;height:21px"> Activer « Site en développement »</label><button type="button" class="tg-btn primary" id="tg-access-save">Enregistrer ce réglage</button><div id="tg-production-dev-password" style="margin-top:20px;padding-top:16px;border-top:1px solid #dbe1ea"><label class="tg-label" for="tg-development-password">Changer le code visiteur (12 caractères minimum)</label><input id="tg-development-password" type="password" minlength="12" maxlength="128" autocomplete="new-password" placeholder="Nouveau code d’accès"><button type="button" class="tg-btn" id="tg-development-change" style="margin-top:10px">Changer le code visiteur</button><p class="tg-caption">Le code visiteur initial est tempogym2026. Change-le depuis cette rubrique avant de partager un lien privé au client. Les accès administrateur et entraîneurs restent indépendants.</p></div><p class="tg-caption">Les changements s'appliquent aux nouvelles visites. Les visiteurs déjà autorisés peuvent conserver leur accès jusqu'à expiration de leur session.</p></div>`;
+   el.innerHTML=`<div class="tg-card"><h3>Visibilité du site</h3><p class="tg-lead">Sur GitHub Pages, ce réglage concerne seulement TON navigateur. Il ne change pas l'accès des autres visiteurs et ne constitue pas une protection sécurisée.</p><p id="tg-access-status" role="status" aria-live="polite">Chargement…</p><label class="tg-label" style="display:flex;align-items:center;gap:12px;margin:14px 0"><input id="tg-development-enabled" type="checkbox" style="width:21px;height:21px"> Activer « Site en développement »</label><button type="button" class="tg-btn primary" id="tg-access-save">Enregistrer ce réglage</button><div id="tg-production-dev-password" style="margin-top:20px;padding-top:16px;border-top:1px solid #dbe1ea"><label class="tg-label" for="tg-development-password">Changer le code visiteur (12 caractères minimum)</label><input id="tg-development-password" type="password" minlength="12" maxlength="128" autocomplete="new-password" placeholder="Nouveau code d’accès"><button type="button" class="tg-btn" id="tg-development-change" style="margin-top:10px">Changer le code visiteur</button><p class="tg-caption">Le code visiteur initial est tempogym2026. Change-le depuis cette rubrique avant de partager un lien privé au client. Les accès administrateur et entraîneurs restent indépendants.</p></div><p class="tg-caption">Les changements s'appliquent aux nouvelles visites. Les visiteurs déjà autorisés peuvent conserver leur accès jusqu'à expiration de leur session.</p></div>`;
    try{
      const cfg=window.TG_DEMO_MODE?await window.TGDemoAPI('/api/development-settings'):await serverReq('/api/development-settings');
      const chk=el.querySelector('#tg-development-enabled');chk.checked=!!cfg.enabled;el.querySelector('#tg-access-status').textContent=cfg.enabled?'État actuel : développement activé':'État actuel : site public';
@@ -7886,7 +7886,7 @@ window.TGAdmin = (function(){
    try {
      if(serverMode()){await serverReq('/api/login',{method:'POST',body:JSON.stringify({role:'admin',password:ui('tg-password').value})});ui('tg-password').value='';showEditor();return;}
      if(window.TG_DEMO_MODE){await window.TGDemoAPI('/api/login','POST',{role:'admin',password:ui('tg-password').value});ui('tg-password').value='';showEditor();setStatus('Démo locale : aucune donnée publiée en ligne.');return;}
-     if(!cloud())throw Error('Ouvre le site publié sur OVH pour accéder au panneau sécurisé.');
+     if(!cloud())throw Error('Ce panneau fonctionne localement sur GitHub Pages : les changements ne sont pas partagés avec les autres visiteurs.');
      const d=await cloudRequest('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email:ui('tg-email').value,password:ui('tg-password').value})});
      token=d.access_token;refreshToken=d.refresh_token;expires=Date.now()+d.expires_in*1000;
      if(!(await isAdmin()))throw Error('Ce compte ne possède pas les droits administrateur.');
@@ -7941,7 +7941,7 @@ window.TGAdmin = (function(){
  }
  async function signout(){if(serverMode())await serverReq('/api/logout',{method:'POST'}).catch(()=>{});if(window.TG_DEMO_MODE)await window.TGDemoAPI('/api/logout','POST');sessionStorage.removeItem('tg_admin_session');token=refreshToken=null;showLogin();}
  function init(){
-  if(!cloud()){ui('tg-email').required=false;ui('tg-email').closest('.tg-field').hidden=true;ui('tg-login').querySelector('.tg-lead').textContent=window.TG_DEMO_MODE?'Démo locale : saisis ton code administrateur de démonstration.':'Entre uniquement ton mot de passe administrateur sur le site OVH publié.';}
+  if(!cloud()){ui('tg-email').required=false;ui('tg-email').closest('.tg-field').hidden=true;ui('tg-login').querySelector('.tg-lead').textContent=window.TG_DEMO_MODE?'GitHub Pages : entre le code administrateur de test. Les changements restent dans ce navigateur.':'Entre uniquement ton mot de passe administrateur sur le site OVH publié.';}
   ui('tg-admin-nav').innerHTML=[...sections,'Commandes & stocks','Documents légaux','Historique','Accès au site'].map(s=>`<button type="button" data-section="${escape(s)}" aria-pressed="false">${escape(s)}</button>`).join('');
   ui('tg-admin-nav').addEventListener('click',e=>{const b=e.target.closest('[data-section]');if(!b)return;section=b.dataset.section;render();});
   ui('tg-admin-editor').addEventListener('input',editInput);
@@ -8240,7 +8240,7 @@ window.TGCoach=(function(){
  const info=(msg,login=false)=>{ $(login?'tg-coach-login-status':'tg-coach-status').textContent=msg;};
  async function api(url,method='GET',data=null){if(window.TG_DEMO_MODE)return window.TGDemoAPI(url,method,data);const r=await fetch(url,{method,credentials:'same-origin',headers:{'X-TG-Request':'v4',...(data!==null?{'Content-Type':'application/json'}:{})},...(data!==null?{body:JSON.stringify(data)}:{})});const d=await r.json().catch(()=>null);if(!r.ok)throw Error(d?.error||'Erreur serveur');return d;}
  const noServer=()=>!window.TG_PASSWORD_MODE&&!window.TG_DEMO_MODE;
- function loginUI(){ $('tg-coach-login-wrap').hidden=false;$('tg-coach-workspace').hidden=true;$('tg-coach-password').value='';$('tg-coach-login-status').textContent=noServer()?'L’espace privé est disponible après installation sur OVH. Double-clique sur la démo HTML pour un aperçu.':'';}
+ function loginUI(){ $('tg-coach-login-wrap').hidden=false;$('tg-coach-workspace').hidden=true;$('tg-coach-password').value='';$('tg-coach-login-status').textContent=noServer()?'Sur GitHub Pages, cet espace est accessible en mode local avec le code entraîneur de test.':'';}
  function workplace(){ $('tg-coach-login-wrap').hidden=true;$('tg-coach-workspace').hidden=false;$('tg-coach-signout').hidden=false;$('tg-coach-demo-note').hidden=!window.TG_DEMO_MODE;$('tg-coach-manage').hidden=role!=='admin';$('tg-coach-subline').textContent=role==='admin'?'Administration des ressources de l’équipe':'Annonces, documents, plannings et rotations';render();}
  function link(v){try{const u=new URL(v);return u.protocol==='https:'?u.href:null}catch{return null}}
  function render(){

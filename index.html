@@ -7503,7 +7503,7 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
   if(route==='/api/session')return {role:sessionStorage.getItem('tg_demo_role_v53')||null};
   if(route==='/api/login'&&method==='POST'){
     const expected=data.role==='admin'?'tempoadmin':data.role==='coach'?'tempocoach':null;
-    if(!expected||data.password!==expected)throw Error('Mot de passe de démonstration incorrect.');
+    if(!expected||data.password!==expected)throw Error('Code incorrect.');
     sessionStorage.setItem('tg_demo_role_v53',data.role);return {role:data.role};
   }
   if(route==='/api/logout'&&method==='POST'){sessionStorage.removeItem('tg_demo_role_v53');return {ok:true};}
@@ -7549,14 +7549,6 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
   if(route==='/api/coaches'&&method==='DELETE'){put('coaches',coaches.filter(x=>x.id!==data.id));return {ok:true};}
   throw Error('Fonction non accessible en mode démo.');
  };
- document.addEventListener('DOMContentLoaded',()=>{
-  const bar=document.createElement('aside');bar.id='tg-v5-demo-banner';
-  bar.setAttribute('aria-label','Barre de démonstration');
-  bar.style.cssText='position:fixed;bottom:14px;left:14px;right:14px;max-width:470px;z-index:99970;background:#071b36;border:1px solid #dba84a;border-radius:13px;color:white;box-shadow:0 8px 30px #0005;padding:13px 16px;font:500 13px/1.5 system-ui,sans-serif;display:flex;gap:12px;align-items:center;flex-wrap:wrap';
-  const label=document.createElement('span');label.textContent='☀️ V5.3 · Démo locale — rien n’est envoyé au club';label.style.flex='1 1 200px';
-  const btn=document.createElement('button');btn.type='button';btn.textContent='Modifier le site';btn.style.cssText='background:#f5a623;border:0;padding:9px 12px;border-radius:8px;color:#081b36;font-weight:800;cursor:pointer';btn.onclick=()=>window.TGAdmin?.open();
-  bar.append(label,btn);document.body.append(bar);
- });
 })();
 </script>
 
@@ -7589,7 +7581,7 @@ html.tg-dev-locked body>*:not(#tg-development-gate){visibility:hidden!important}
 <div id="tg-admin" hidden role="dialog" aria-modal="true" aria-labelledby="tg-admin-title">
   <header class="tg-head">
     <div><div class="tg-wordmark" id="tg-admin-title">ROYAL <span>TEMPOGYM</span> · ADMIN</div><div class="tg-small">Gestion du contenu sans toucher au code</div></div>
-    <div class="tg-actions"><span class="tg-chip" id="tg-mode">Démo locale</span><button type="button" class="tg-btn" id="tg-admin-signout" hidden>Déconnexion</button><button type="button" class="tg-btn" id="tg-admin-close" aria-label="Fermer le panneau">✕ Fermer</button></div>
+    <div class="tg-actions"><span class="tg-chip" id="tg-mode">Édition sur cet appareil</span><button type="button" class="tg-btn" id="tg-admin-signout" hidden>Déconnexion</button><button type="button" class="tg-btn" id="tg-admin-close" aria-label="Fermer le panneau">✕ Fermer</button></div>
   </header>
   <div class="tg-login-wrap tg-hidden" id="tg-login-wrap">
     <form id="tg-login" class="tg-login">
@@ -7688,8 +7680,8 @@ window.TGAdmin = (function(){
   const el=ui('tg-admin-warning');
   if(serverMode()){el.textContent='Mode serveur privé : seuls les titulaires du mot de passe administrateur peuvent modifier le site. Les commandes des parents sont enregistrées côté serveur.';ui('tg-mode').textContent='Serveur privé';return;}
   el.textContent=cloud()?'Mode partagé : seuls les comptes autorisés peuvent publier. Les modifications deviennent visibles sur tous les appareils après actualisation.':
-    'GITHUB PAGES · MODE LOCAL : les modifications sont sauvegardées seulement dans ce navigateur. Les autres visiteurs ne les verront pas. Pour les partager, un stockage sécurisé sera nécessaire.';
-  ui('tg-mode').textContent=cloud()?'Base de données partagée':'Démo locale';
+    'Les changements effectués ici sont enregistrés uniquement dans ce navigateur. Ils ne sont pas publiés pour les autres visiteurs. Un serveur sécurisé permettra leur synchronisation lors de la mise en service.';
+  ui('tg-mode').textContent=cloud()?'Base de données partagée':'Édition locale';
  }
  async function renderAccessSettings(){
    const el=ui('tg-admin-editor');
@@ -7885,7 +7877,7 @@ window.TGAdmin = (function(){
    e.preventDefault();const msg=ui('tg-login-msg');msg.textContent='Connexion…';
    try {
      if(serverMode()){await serverReq('/api/login',{method:'POST',body:JSON.stringify({role:'admin',password:ui('tg-password').value})});ui('tg-password').value='';showEditor();return;}
-     if(window.TG_DEMO_MODE){await window.TGDemoAPI('/api/login','POST',{role:'admin',password:ui('tg-password').value});ui('tg-password').value='';showEditor();setStatus('Démo locale : aucune donnée publiée en ligne.');return;}
+     if(window.TG_DEMO_MODE){await window.TGDemoAPI('/api/login','POST',{role:'admin',password:ui('tg-password').value});ui('tg-password').value='';showEditor();setStatus('Modifications enregistrées uniquement sur cet appareil.');return;}
      if(!cloud())throw Error('Ce panneau fonctionne localement sur GitHub Pages : les changements ne sont pas partagés avec les autres visiteurs.');
      const d=await cloudRequest('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email:ui('tg-email').value,password:ui('tg-password').value})});
      token=d.access_token;refreshToken=d.refresh_token;expires=Date.now()+d.expires_in*1000;
@@ -8206,7 +8198,7 @@ document.addEventListener('click', function(e){
       </div>
       <div id="tg-coach-workspace" hidden>
         <div class="tg-coach-bar"><div><strong id="tg-coach-welcome">Ressources de l'équipe</strong><div class="tg-coach-muted" id="tg-coach-subline">Actualités, documents, planning et rotations</div></div><button type="button" id="tg-coach-signout" class="tg-coach-btn" hidden>Se déconnecter</button></div>
-        <div class="tg-coach-info" id="tg-coach-demo-note" hidden>Mode démo sur cet appareil : les annonces sont fictives et non partagées avec les entraîneurs. La version OVH protège les contenus réels.</div>
+        <div class="tg-coach-info" id="tg-coach-demo-note" hidden>Cet espace conserve son contenu sur cet appareil uniquement. Les annonces ne sont pas encore partagées avec l’équipe.</div>
         <div class="tg-coach-tabs" id="tg-coach-tabs" role="tablist" aria-label="Rubriques des entraîneurs">
           <button type="button" class="tg-coach-tab" data-tab="annonce" role="tab" aria-selected="true">Annonces</button>
           <button type="button" class="tg-coach-tab" data-tab="document" role="tab" aria-selected="false">Documents</button>
@@ -8411,9 +8403,9 @@ body.tg-server-mode #tg-admin .tg-field:has(#tg-email){display:none}
    el.querySelector('#tgv4-search')?.addEventListener('change',e=>{search=e.target.value;renderInner(el);});
    el.querySelectorAll('[data-order]').forEach(input=>input.addEventListener('change',async e=>{try{await api('/api/order-status','POST',{id:e.target.dataset.order,status:e.target.value});await refresh();renderInner(el);}catch(err){alert(err.message);await refresh();renderInner(el);}}));
    el.querySelectorAll('[data-anonymize]').forEach(btn=>btn.addEventListener('click',async e=>{if(!confirm('Effacer le nom, le groupe et l’adresse e-mail de cette commande terminée ? Cette action est définitive.'))return;try{await api('/api/order-anonymize','POST',{id:e.target.dataset.anonymize});await refresh();renderInner(el);}catch(err){alert(err.message);}}));
-   el.querySelectorAll('[data-stock-save]').forEach(btn=>btn.addEventListener('click',async e=>{const sku=e.currentTarget.dataset.stockSave,size=e.currentTarget.dataset.size;const n=[...el.querySelectorAll('input[data-stock]')].find(x=>x.dataset.stock===sku&&x.dataset.size===size);if(!n){alert('Ligne de stock introuvable. Actualise la rubrique.');return;}const q=n.value.trim()===''?null:Number(n.value);if(q!==null&&(!Number.isInteger(q)||q<0)){alert('Saisis une quantité entière positive ou vide.');return;}try{await api('/api/stock','POST',{sku,size,quantity:q});await refresh();renderInner(el);const st=el.querySelector('#tgv4-admin-status');if(st)st.textContent=(window.TG_DEMO_MODE?'Stock de démonstration':'Stock')+' enregistré pour '+size+' : '+(q===null?'quantité non définie':q+' disponible(s)')+'.';}catch(err){alert(err.message);}}));
+   el.querySelectorAll('[data-stock-save]').forEach(btn=>btn.addEventListener('click',async e=>{const sku=e.currentTarget.dataset.stockSave,size=e.currentTarget.dataset.size;const n=[...el.querySelectorAll('input[data-stock]')].find(x=>x.dataset.stock===sku&&x.dataset.size===size);if(!n){alert('Ligne de stock introuvable. Actualise la rubrique.');return;}const q=n.value.trim()===''?null:Number(n.value);if(q!==null&&(!Number.isInteger(q)||q<0)){alert('Saisis une quantité entière positive ou vide.');return;}try{await api('/api/stock','POST',{sku,size,quantity:q});await refresh();renderInner(el);const st=el.querySelector('#tgv4-admin-status');if(st)st.textContent=(window.TG_DEMO_MODE?'Stock local':'Stock')+' enregistré pour '+size+' : '+(q===null?'quantité non définie':q+' disponible(s)')+'.';}catch(err){alert(err.message);}}));
   }
-  return {render:async(el)=>{if(!mode()){el.innerHTML='<p class="tg-empty">Disponible en démonstration locale ou sur le site OVH.</p>';return;}el.innerHTML='<p class="tg-lead">Chargement des commandes…</p>';try{await refresh();renderInner(el);}catch(err){el.textContent=err.message;}}};
+  return {render:async(el)=>{if(!mode()){el.innerHTML='<p class="tg-empty">Disponible avec un espace de stockage configuré.</p>';return;}el.innerHTML='<p class="tg-lead">Chargement des commandes…</p>';try{await refresh();renderInner(el);}catch(err){el.textContent=err.message;}}};
  })();
  const legalFields={identity:'Dénomination légale de l’ASBL',legalAddress:'Adresse légale du siège (pas uniquement la salle)',enterpriseNumber:'Numéro BCE',vat:'Numéro TVA / régime',responsible:'Représentant légal',email:'E-mail public',phone:'Téléphone',host:'Hébergeur du site',privacyContact:'Contact RGPD',retentionMonths:'Conservation indicative des demandes (mois)',delivery:'Retrait / livraison',payment:'Paiement',withdrawal:'Retours, rétractation, garanties',terms:'Conditions générales'};
  window.TGLegalAdmin={render:async el=>{

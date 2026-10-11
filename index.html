@@ -8189,7 +8189,7 @@ document.addEventListener('click', function(e){
       <div id="tg-coach-login-wrap">
         <form id="tg-coach-login" class="tg-coach-login">
           <h3>Connexion entraîneur</h3>
-          <p class="tg-coach-muted">Entre le mot de passe des entraîneurs. Aucun e-mail ou compte individuel nécessaire.</p>
+          <p class="tg-coach-muted">Accès aux annonces, documents, plannings et rotations de l’équipe.</p>
           
           <div class="tg-coach-field"><label for="tg-coach-password">Mot de passe</label><input id="tg-coach-password" type="password" autocomplete="current-password" required></div>
           <button type="submit" class="tg-coach-btn primary">Se connecter</button>
@@ -8232,7 +8232,7 @@ window.TGCoach=(function(){
  const info=(msg,login=false)=>{ $(login?'tg-coach-login-status':'tg-coach-status').textContent=msg;};
  async function api(url,method='GET',data=null){if(window.TG_DEMO_MODE)return window.TGDemoAPI(url,method,data);const r=await fetch(url,{method,credentials:'same-origin',headers:{'X-TG-Request':'v4',...(data!==null?{'Content-Type':'application/json'}:{})},...(data!==null?{body:JSON.stringify(data)}:{})});const d=await r.json().catch(()=>null);if(!r.ok)throw Error(d?.error||'Erreur serveur');return d;}
  const noServer=()=>!window.TG_PASSWORD_MODE&&!window.TG_DEMO_MODE;
- function loginUI(){ $('tg-coach-login-wrap').hidden=false;$('tg-coach-workspace').hidden=true;$('tg-coach-password').value='';$('tg-coach-login-status').textContent=noServer()?'Sur GitHub Pages, cet espace est accessible en mode local avec le code entraîneur de test.':'';}
+ function loginUI(){ $('tg-coach-login-wrap').hidden=false;$('tg-coach-workspace').hidden=true;$('tg-coach-password').value='';$('tg-coach-login-status').textContent=noServer()?'':'';}
  function workplace(){ $('tg-coach-login-wrap').hidden=true;$('tg-coach-workspace').hidden=false;$('tg-coach-signout').hidden=false;$('tg-coach-demo-note').hidden=!window.TG_DEMO_MODE;$('tg-coach-manage').hidden=role!=='admin';$('tg-coach-subline').textContent=role==='admin'?'Administration des ressources de l’équipe':'Annonces, documents, plannings et rotations';render();}
  function link(v){try{const u=new URL(v);return u.protocol==='https:'?u.href:null}catch{return null}}
  function render(){

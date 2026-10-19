@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
@@ -7,6 +7,10 @@ const source = html.replace(/<!--[\s\S]*?-->/g, '');
 const scripts = [...source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
   .filter(([, attrs]) => !/\bsrc\s*=|application\/(?:ld\+)?json/i.test(attrs))
   .map(([, , code]) => code);
+for (const [, attrs] of source.matchAll(/<script\b([^>]*)>/gi)) {
+  const src = attrs.match(/\bsrc="([^"]+)"/i)?.[1];
+  if (src && !/^https?:/.test(src)) scripts.push(readFileSync(new URL('../' + src, import.meta.url), 'utf8'));
+}
 scripts.forEach((code, i) => new vm.Script(code, { filename: `inline-${i}.js` }));
 
 function storage() {
@@ -53,5 +57,5 @@ assert.match(panels['panel-fungym'].innerHTML, /✓ Ouvert/);
 render(true);
 assert.match(panels['panel-baby'].innerHTML, /✓ Ouvert/);
 
-assert.ok(existsSync(new URL('../floatingimage/Logofloating3D.png', import.meta.url)), 'Le logo de navigation doit accompagner la vitrine');
-console.log(`${scripts.length} scripts JavaScript valides ; vitrine sans enregistrement de commande ; tarifs fermés/ouverts et exceptions vérifiés ; logo présent.`);
+assert.doesNotMatch(html.match(/<nav[\s\S]*?<\/nav>/)[0], /<img/, 'L’en-tête doit rester textuel');
+console.log(`${scripts.length} scripts JavaScript valides ; vitrine sans enregistrement de commande ; tarifs fermés/ouverts et exceptions vérifiés ; en-tête textuel.`);

@@ -3669,6 +3669,7 @@ body.modal-open { overflow: hidden; }
 
 /* Coach card */
 .coach-card {
+  background: transparent; border: 0; padding: 0; color: inherit; font: inherit; text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -6839,220 +6840,7 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
 
 </script>
 
-<script>
-// ===========================
-// CAROUSEL ENTRAÎNEURS — banderole infinie + drag/swipe
-// Auto-scroll RAF · pause hover/focus · drag souris · swipe touch
-// ===========================
-(function() {
-  var track    = document.getElementById('coaches-track');
-  var carousel = document.getElementById('coachesCarousel');
-  var modalsContainer = document.getElementById('coaches-modals');
-  if (!track || !carousel) return;
-
-  // ── 1. Génère les cartes ─────────────────────────────
-  function buildCard(c, interactive) {
-    var avatarHtml = c.photo
-      ? '<img src="' + c.photo + '" alt="' + c.nom + '" class="coach-avatar" loading="lazy" decoding="async">'
-      : '<div class="coach-avatar-initials">' + (c.initiale || c.nom[0]) + '</div>';
-    var groupes = Array.isArray(c.groupes) ? c.groupes.join(' · ') : (c.groupes || '');
-    return '<div class="coach-card" data-coach="' + c.id
-      + '" role="button" tabindex="' + (interactive ? '0' : '-1')
-      + '" aria-hidden="' + (interactive ? 'false' : 'true')
-      + '" aria-label="' + (interactive ? 'Voir le profil de ' + c.nom : '') + '">'
-      + '<div class="coach-avatar-wrap">' + avatarHtml + '</div>'
-      + '<div class="coach-name">' + c.nom + '</div>'
-      + '<div class="coach-group-tag">' + groupes + '</div>'
-      + '</div>';
-  }
-
-  if (window.ENTRAINEURS && ENTRAINEURS.length) {
-    var setHtml   = ENTRAINEURS.map(function(c){ return buildCard(c, true);  }).join('');
-    var cloneHtml = ENTRAINEURS.map(function(c){ return buildCard(c, false); }).join('');
-    track.innerHTML = setHtml + cloneHtml;
-  }
-
-  // ── 2. Génère les modales ────────────────────────────
-  if (modalsContainer && window.ENTRAINEURS) {
-    modalsContainer.innerHTML = ENTRAINEURS.map(function(c) {
-      var avatarHtml = c.photo
-        ? '<img src="' + c.photo + '" alt="' + c.nom + '" class="coach-modal-avatar" loading="lazy" decoding="async">'
-        : '<div class="coach-modal-avatar-initials">' + (c.initiale || c.nom[0]) + '</div>';
-      var groupTags = Array.isArray(c.groupes)
-        ? c.groupes.map(function(g){ return '<span class="coach-modal-group-tag">' + g + '</span>'; }).join('')
-        : '<span class="coach-modal-group-tag">' + (c.groupes || '') + '</span>';
-      return '<div id="modal-coach-' + c.id + '" class="modal-overlay modal-coach-full" role="dialog" aria-modal="true">'
-        + '<div class="modal-box" style="max-width:520px;">'
-        + '<button class="modal-close" aria-label="Fermer"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
-        + '<div class="modal-header">'
-        + avatarHtml
-        + '<p class="modal-eyebrow" style="color:var(--tg-red);">' + c.role + '</p>'
-        + '<h2 class="modal-title">' + c.nom + '</h2>'
-        + '</div>'
-        + '<div class="modal-body">'
-        + (c.bio ? '<p class="modal-desc">' + c.bio + '</p>' : '<p class="modal-desc" style="opacity:.5;font-style:italic;">Biographie à venir.</p>')
-        + '<div class="coach-modal-meta"><div class="coach-modal-meta-item">'
-        + '<span class="coach-modal-meta-label">Depuis</span>'
-        + '<span class="coach-modal-meta-value">' + (c.depuis || '—') + '</span>'
-        + '</div></div>'
-        + '<div class="coach-modal-groups">' + groupTags + '</div>'
-        + '</div></div></div>';
-    }).join('');
-
-    modalsContainer.querySelectorAll('.modal-close').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var m = btn.closest('.modal-overlay');
-        if (m) { m.classList.remove('active'); document.body.style.overflow = ''; }
-      });
-    });
-    modalsContainer.querySelectorAll('.modal-overlay').forEach(function(m) {
-      m.addEventListener('click', function(e) {
-        if (e.target === m) { m.classList.remove('active'); document.body.style.overflow = ''; }
-      });
-    });
-  }
-
-  // ── 3. Moteur RAF auto-scroll ────────────────────────
-  var speed        = 0.6;  // px/frame — augmenter = plus rapide
-  var pos          = 0;
-  var halfWidth    = 0;
-  var rafId        = null;
-  var autoRunning  = true;
-  var pauseReasons = {};
-
-  function pause(reason) {
-    pauseReasons[reason] = true;
-    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-    autoRunning = false;
-  }
-
-  function resume(reason) {
-    delete pauseReasons[reason];
-    if (Object.keys(pauseReasons).length === 0 && !autoRunning) {
-      autoRunning = true;
-      rafId = requestAnimationFrame(autoTick);
-    }
-  }
-
-  function autoTick() {
-    if (!autoRunning) return;
-    halfWidth = track.scrollWidth / 2;
-    pos -= speed;
-    if (pos <= -halfWidth) pos += halfWidth;
-    track.style.transform = 'translateX(' + pos + 'px)';
-    rafId = requestAnimationFrame(autoTick);
-  }
-
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    pause('reduced-motion');
-  } else {
-    requestAnimationFrame(function() {
-      halfWidth = track.scrollWidth / 2;
-      rafId = requestAnimationFrame(autoTick);
-    });
-  }
-
-  // ── 4. Pause hover ───────────────────────────────────
-  carousel.addEventListener('mouseenter', function() { pause('hover'); });
-  carousel.addEventListener('mouseleave', function() { resume('hover'); });
-
-  // ── 5. Pause focus clavier ───────────────────────────
-  carousel.addEventListener('focusin',  function() { pause('focus'); });
-  carousel.addEventListener('focusout', function() { resume('focus'); });
-
-  // ── 6. Drag souris ───────────────────────────────────
-  var isDragging   = false;
-  var dragStartX   = 0;
-  var dragStartPos = 0;
-  var hasDragged   = false;
-  var resumeTimer  = null;
-
-  carousel.addEventListener('mousedown', function(e) {
-    if (e.button !== 0) return;
-    isDragging   = true;
-    hasDragged   = false;
-    dragStartX   = e.pageX;
-    dragStartPos = pos;
-    pause('drag');
-    carousel.classList.add('is-dragging');
-    e.preventDefault();
-  });
-
-  document.addEventListener('mousemove', function(e) {
-    if (!isDragging) return;
-    var diff = e.pageX - dragStartX;
-    if (Math.abs(diff) > 5) hasDragged = true;
-    halfWidth = track.scrollWidth / 2;
-    pos = (dragStartPos + diff) % halfWidth;
-    if (pos > 0) pos -= halfWidth;
-    track.style.transform = 'translateX(' + pos + 'px)';
-  });
-
-  document.addEventListener('mouseup', function() {
-    if (!isDragging) return;
-    isDragging = false;
-    carousel.classList.remove('is-dragging');
-    clearTimeout(resumeTimer);
-    resumeTimer = setTimeout(function() { resume('drag'); }, 800);
-  });
-
-  // ── 7. Swipe touch ───────────────────────────────────
-  var touchStartX   = 0;
-  var touchStartPos = 0;
-  var touchMoved    = false;
-
-  carousel.addEventListener('touchstart', function(e) {
-    touchStartX   = e.touches[0].clientX;
-    touchStartPos = pos;
-    touchMoved    = false;
-    pause('touch');
-    clearTimeout(resumeTimer);
-  }, { passive: true });
-
-  carousel.addEventListener('touchmove', function(e) {
-    var diff = e.touches[0].clientX - touchStartX;
-    if (Math.abs(diff) > 8) touchMoved = true;
-    halfWidth = track.scrollWidth / 2;
-    pos = (touchStartPos + diff) % halfWidth;
-    if (pos > 0) pos -= halfWidth;
-    track.style.transform = 'translateX(' + pos + 'px)';
-  }, { passive: true });
-
-  carousel.addEventListener('touchend', function() {
-    clearTimeout(resumeTimer);
-    resumeTimer = setTimeout(function() { resume('touch'); }, 1200);
-  }, { passive: true });
-
-  // ── 8. Clic / Tap → modal ────────────────────────────
-  function openModal(id) {
-    var modal = document.getElementById('modal-coach-' + id);
-    if (!modal) return;
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-
-  carousel.addEventListener('click', function(e) {
-    if (hasDragged) return;
-    var card = e.target.closest('.coach-card');
-    if (card) openModal(card.dataset.coach);
-  });
-
-  carousel.addEventListener('touchend', function(e) {
-    if (touchMoved) return;
-    var card = e.target.closest('.coach-card');
-    if (card) openModal(card.dataset.coach);
-  }, { passive: true });
-
-  carousel.addEventListener('keydown', function(e) {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
-    var card = e.target.closest('.coach-card');
-    if (!card) return;
-    e.preventDefault();
-    openModal(card.dataset.coach);
-  });
-
-})();
-</script>
+<script src="assets/coach-carousel.js" defer></script>
 <!-- ═══════════════════════════════════════════════════
      MINI MODALES ACCORDÉON BOUTIQUE
 ════════════════════════════════════════════════════ -->
@@ -7499,7 +7287,7 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
  let mem={};
  const get=(key,def)=>{try{return JSON.parse(localStorage.getItem('tg_demo_v5_'+key))??def}catch{return mem[key]??def}};
  const put=(key,val)=>{mem[key]=val;try{localStorage.setItem('tg_demo_v5_'+key,JSON.stringify(val));}catch(e){console.warn('Stockage local indisponible ou plein',e)}};
- const legal={identity:'Royal TempoGym Jette',legalAddress:'',enterpriseNumber:'',vat:'',responsible:'',email:'tempogymjette@hotmail.com',phone:'0473/17.34.14',host:'',privacyContact:'tempogymjette@hotmail.com',retentionMonths:12,delivery:'Retrait au club — simulation',payment:'Aucun paiement (démo).',withdrawal:'À préciser',terms:'Aucune commande réelle sur cette démonstration.'};
+ const legal={identity:'ROYAL TEMPOGYM JETTE ASBL',legalAddress:'Avenue du Comté de Jette 3, 1090 Jette, Belgique',enterpriseNumber:'0899.464.172',vat:'',responsible:'Le comité de ROYAL TEMPOGYM JETTE ASBL',email:'tempogymjette@hotmail.com',phone:'0473/17.34.14',host:'GitHub Pages — GitHub, Inc. (vitrine de démonstration)',privacyContact:'tempogymjette@hotmail.com',retentionMonths:12,delivery:'Retrait au club — simulation',payment:'Aucun paiement (démo).',withdrawal:'À préciser',terms:'Aucune commande réelle sur cette démonstration.'};
  const now=()=>new Date().toISOString();
  window.TGDemoAPI=async function(route,method='GET',data=null){
   const orders=get('orders',[]),stocks=get('stocks',{}),coaches=get('coaches',[]);
@@ -8335,7 +8123,7 @@ body.tg-server-mode #tg-admin .tg-field:has(#tg-email){display:none}
  const E=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const mode=()=>!!window.TG_PASSWORD_MODE||!!window.TG_DEMO_MODE;
  async function api(url,method='GET',data){if(window.TG_DEMO_MODE)return window.TGDemoAPI(url,method,data);const r=await fetch(url,{method,credentials:'same-origin',headers:{'X-TG-Request':'v4',...(data!==undefined?{'Content-Type':'application/json'}:{})},...(data!==undefined?{body:JSON.stringify(data)}:{})});const d=await r.json().catch(()=>null);if(!r.ok)throw Error(d?.error||'Erreur serveur '+r.status);return d;}
- const legalDefault={identity:'Royal TempoGym Jette',legalAddress:'',enterpriseNumber:'',vat:'',responsible:'',email:'tempogymjette@hotmail.com',phone:'0473/17.34.14',host:'',privacyContact:'tempogymjette@hotmail.com',retentionMonths:12,delivery:'Retrait au club (à confirmer)',payment:'Paiement après confirmation par le secrétariat.',withdrawal:'À confirmer selon les règles applicables.',terms:'Les commandes envoyées constituent des demandes, sous réserve de validation et de stock.'};
+ const legalDefault={identity:'ROYAL TEMPOGYM JETTE ASBL',legalAddress:'Avenue du Comté de Jette 3, 1090 Jette, Belgique',enterpriseNumber:'0899.464.172',vat:'',responsible:'Le comité de ROYAL TEMPOGYM JETTE ASBL',email:'tempogymjette@hotmail.com',phone:'0473/17.34.14',host:'GitHub Pages — GitHub, Inc. (vitrine de démonstration)',privacyContact:'tempogymjette@hotmail.com',retentionMonths:12,delivery:'Retrait au club (à confirmer)',payment:'Paiement après confirmation par le secrétariat.',withdrawal:'À confirmer selon les règles applicables.',terms:'Les commandes envoyées constituent des demandes, sous réserve de validation et de stock.'};
  let legal=legalDefault,legalTab='privacy',lastFocus=null;
  const frame=document.getElementById('tg-legal-dialog'),ct=document.getElementById('tg-legal-content');
  const val=(key)=>E(legal[key]||'À compléter avant publication');

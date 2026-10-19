@@ -4031,7 +4031,7 @@ body.modal-open { overflow: hidden; }
     <li><a href="#contact">Contact</a></li>
   </ul>
   <div class="nav-right">
-    <a href="#inscriptions" class="nav-cta">Disponibilités</a>
+    <a href="#inscriptions" class="nav-cta">S’inscrire</a>
     <button class="burger-btn" id="burgerBtn" aria-expanded="false" aria-controls="mobileMenu" aria-label="Ouvrir le menu de navigation">
       <span></span><span></span><span></span>
     </button>
@@ -4049,7 +4049,7 @@ body.modal-open { overflow: hidden; }
   <a href="#horaires" class="mob-link">Horaires</a>
   <a href="#evenements" class="mob-link">Événements</a>
   <a href="#contact" class="mob-link">Contact</a>
-  <a href="#inscriptions" class="mob-cta mob-link">Disponibilités</a>
+  <a href="#inscriptions" class="mob-cta mob-link">S’inscrire</a>
   <div class="mobile-menu-bar">Royal Tempogym Jette · Jette, Bruxelles · Depuis 1923</div>
 </div>
 
@@ -4830,7 +4830,7 @@ body.modal-open { overflow: hidden; }
     <p class="section-eyebrow" style="color:rgba(255,255,255,.7)" id="rejoignez-eyebrow">Rejoignez-nous</p>
     <h2 class="section-title" id="rejoignez-titre">PRÊT·E À<br>BOUGER ?</h2>
     <p id="inscription-cta-text">Les inscriptions générales 2026–2027 sont clôturées. Certaines sections restent accessibles sur sélection : consultez les disponibilités.</p>
-    <a href="#inscriptions" class="btn-white" id="inscription-cta-btn">Disponibilités</a>
+    <a href="#inscriptions" class="btn-white" id="inscription-cta-btn">S’inscrire</a>
   </div>
 </section>
 
@@ -4990,7 +4990,7 @@ body.modal-open { overflow: hidden; }
         <li><a href="#horaires">Horaires</a></li>
         <li><a href="#stages">Stages</a></li>
         <li><a href="#boutique">Boutique</a></li>
-        <li><a href="#inscriptions">Disponibilités</a></li>
+        <li><a href="#inscriptions">S’inscrire</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
       <div style="margin-top:20px;">
@@ -5977,9 +5977,13 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
     var tbody = panel.querySelector('tbody');
     if (!tbody) return;
     tbody.innerHTML = cfg.lignes.map(function(l) {
-      var dispoCss = l.complet ? 'style="color:#E8332A;font-weight:700;"' : (l.dispo === '✓ Ouvert' ? 'style="color:#27ae60;font-weight:600;"' : (l.dispo === 'Quelques places' ? 'style="color:#F5A623;font-weight:600;"' : ''));
-      var rowCss = (l.complet || l.selection) ? ' class="tarif-full"' : '';
-      return '<tr' + rowCss + '><td><strong>' + l.groupe + '</strong></td><td>' + l.age + '</td><td>' + l.horaires + '</td><td class="tarif-price">' + l.prix + '</td><td ' + dispoCss + '>' + (l.complet ? '🔴 Complet' : l.dispo) + '</td></tr>';
+      var inscriptionsCloses = typeof INSCRIPTIONS_OUVERTES !== 'undefined' && !INSCRIPTIONS_OUVERTES
+        && ['baby','gaf','gam-loisirs','parkour'].indexOf(panelId) !== -1 && !l.selection;
+      var ferme = l.complet || inscriptionsCloses;
+      var disponibilite = l.complet ? '🔴 Complet' : (inscriptionsCloses ? 'Inscriptions clôturées' : l.dispo);
+      var dispoCss = ferme ? 'style="color:#E8332A;font-weight:700;"' : (l.dispo === '✓ Ouvert' ? 'style="color:#27ae60;font-weight:600;"' : (l.dispo === 'Quelques places' ? 'style="color:#F5A623;font-weight:600;"' : ''));
+      var rowCss = (ferme || l.selection) ? ' class="tarif-full"' : '';
+      return '<tr' + rowCss + '><td><strong>' + l.groupe + '</strong></td><td>' + l.age + '</td><td>' + l.horaires + '</td><td class="tarif-price">' + l.prix + '</td><td ' + dispoCss + '>' + disponibilite + '</td></tr>';
     }).join('');
     // Note de bas de tableau
     var note = panel.querySelector('.tarif-note');
@@ -7521,6 +7525,7 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
    (stocks[data.sku]??={})[data.size]=data.quantity;put('stocks',stocks);return {ok:true};
   }
   if(route==='/api/orders'&&method==='POST'){
+   if(window.TG_STATIC_PAGES)throw Error('Les commandes en ligne ne sont pas disponibles sur cette vitrine.');
    const p=catalog.products.find(x=>x.sku===data.sku);
    if(!p)throw Error('Article introuvable dans la démo.');
    if(!data.privacyAccepted||!data.first||!data.last||!data.group||!data.email)throw Error('Champs obligatoires manquants.');
@@ -8369,7 +8374,7 @@ body.tg-server-mode #tg-admin .tg-field:has(#tg-email){display:none}
    area.insertBefore(box,b);
   }
  }
- if(mode()){checkoutControls();
+ if(mode() && !window.TG_STATIC_PAGES){checkoutControls();
   document.addEventListener('click',async e=>{
    const b=e.target.closest('[data-tgv4-order]');if(!b)return;
    e.preventDefault();e.stopImmediatePropagation();
@@ -8419,6 +8424,11 @@ body.tg-server-mode #tg-admin .tg-field:has(#tg-email){display:none}
 </script>
 <script>
 (function(){
+  if(!window.TG_STATIC_PAGES)return;
+  document.documentElement.classList.add('tg-catalog-only');
+  const style=document.createElement('style');
+  style.textContent='.tg-catalog-only .modal-fields,.tg-catalog-only .mini-modal-fields,.tg-catalog-only .modal-fields-required,.tg-catalog-only .modal-cmd-ref,.tg-catalog-only .mini-modal-ref,.tg-catalog-only .mini-modal-error,.tg-catalog-only .taille-required-msg{display:none!important}.tg-catalog-only [data-tg-static-order]{opacity:1!important;pointer-events:auto!important}.tg-static-shop-info{font:400 13px/1.6 Arial,sans-serif;color:#e1e8f3;margin:12px 0}';
+  document.head.append(style);
   function showOrderNotice(){
     let n=document.getElementById('tg-static-order-notice');
     if(!n){
@@ -8435,8 +8445,10 @@ body.tg-server-mode #tg-admin .tg-field:has(#tg-email){display:none}
   },true);
   document.addEventListener('DOMContentLoaded',function(){
     document.querySelectorAll('#btn-tshirt,#btn-tunique,#btn-gam,#btn-ensemble,#btn-catalogue,.mm-cmd-btn').forEach(b=>{
+      b.setAttribute('data-tg-static-order','');
       b.textContent='Commandes bientôt disponibles';b.removeAttribute('href');b.setAttribute('role','button');b.setAttribute('tabindex','0');
       b.setAttribute('aria-label','Commandes bientôt disponibles');
+      const note=document.createElement('p');note.className='tg-static-shop-info';note.textContent='Catalogue consultable. Les commandes en ligne ne sont pas encore ouvertes. Pour une demande, contactez le secrétariat du club.';b.before(note);
       b.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();showOrderNotice();}});
     });
   });

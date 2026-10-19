@@ -4,12 +4,12 @@ Date : 19 octobre 2026. Projet : `Khiirooo/Boutique-TempoGym`.
 
 **Verdict : démonstration présentable après corrections, pas encore un service de production pour les comptes et les commandes.**
 
-L'audit de navigateur porte sur la version publiée au commit `2c18b141d7b0448e73692ef1a27603a72d079566`. Les corrections décrites ci-dessous sont proposées sur la branche `fix/livraison-2026-10-19` et ne sont pas publiées sur `main`. Les tests de source de cette branche passent. Leur nouvelle interface n'a pas pu être vérifiée visuellement avant publication : le navigateur de contrôle ne permet pas d'ouvrir la copie locale. Ne pas confondre les captures de la version publiée avec une validation visuelle du correctif.
+L'audit initial porte sur la version publiée au commit `2c18b141d7b0448e73692ef1a27603a72d079566`. Les corrections ont ensuite été publiées via la PR #1, après autorisation du propriétaire. Le bouton « S’inscrire », le blocage des fausses commandes et les disponibilités des tarifs ont été recontrôlés dans le navigateur sur le site publié. L'image du logo ajoutée au menu a été retirée à la demande du propriétaire ; l'en-tête textuel et le bouton « S’inscrire » sont confirmés en ligne. Les limites de recette serveur et mobile restent applicables. Le tableau ci-dessous conserve les constats de l'audit initial et précise les corrections.
 
-## Changements préparés
+## Changements publiés
 
 - « Disponibilités » devient **« S’inscrire »** dans le menu bureau, le menu mobile, le pied de page et le libellé HTML de secours. La destination reste `#inscriptions`. Le bandeau inférieur peut toujours afficher « Nous contacter » lorsque les inscriptions sont closes, conformément au comportement existant.
-- Le logo du menu est ajouté au dépôt. Son ancien chemin relatif répondait avec un fichier absent.
+- L'en-tête conserve son identité textuelle. L'image ajoutée au menu lors de la réparation d'une ressource absente a été retirée à la demande du propriétaire.
 - Les tarifs Baby/Pré-gym, GAF Loisirs et Parkour loisirs respectent maintenant la clôture générale. Les compétitions sur sélection et Fun Gym conservent leurs exceptions. Aucune date, aucun prix ni horaire n'a été inventé.
 - La vitrine GitHub Pages ne peut plus enregistrer de commande fictive : garde au niveau du moteur local et retrait du gestionnaire de commande de cette vitrine. Les champs d'identité et références de commande sont masqués ; les tailles restent consultables et une information indique de contacter le secrétariat.
 - Ajout d'un contrôle exécutable avec `node scripts/check-static.mjs`. Le README précise les limites réelles de la démonstration.
@@ -19,12 +19,12 @@ L'audit de navigateur porte sur la version publiée au commit `2c18b141d7b0448e7
 | Étape | Parcours | État et preuve observée |
 |---|---|---|
 | 1 | Accès visiteur | Le site publié affiche un écran de développement. Accès obtenu puis accueil visible. Ce filtre JavaScript ne protège pas le code public. |
-| 2 | Navigation / inscription | Le bouton actuel atteint la section inscriptions. Le nouveau libellé est préparé dans le code. |
+| 2 | Navigation / inscription | Le bouton actuel atteint la section inscriptions. Le nouveau libellé est confirmé sur le site publié. |
 | 3 | Disciplines | Les 8 fiches s'ouvrent et se ferment : GAF, GAM, Parkour, Baby, Fun Gym et les 3 compétitions. |
 | 4 | Profil entraîneur | Le profil Lucas s'ouvre avec Entrée ; le clic n'a pas donné une ouverture fiable dans ce navigateur de contrôle. À revalider au pointeur. La fiche affiche encore « Biographie à venir » et « à définir ». |
 | 5 | Inscriptions | Clôture générale 2026–2027 et exceptions affichées. Aucun formulaire d'inscription active n'est proposé actuellement. Le bouton « S’inscrire » ne rouvre pas les inscriptions. |
-| 6 | Boutique | Les 4 produits vedettes s'ouvrent. Taille, identité et groupe ont été testés avec des données fictives sur un produit. Bug reproduit : le clic « Commandes bientôt disponibles » enregistrait malgré tout une commande locale DEMO. Corrigé dans la proposition. |
-| 7 | Tarifs | Les 7 onglets sélectionnent leur tableau. Incohérence « Ouvert » / inscriptions closes reproduite puis corrigée dans le rendu proposé. |
+| 6 | Boutique | Les 4 produits vedettes s'ouvrent. Taille, identité et groupe ont été testés avec des données fictives sur un produit. Bug reproduit : le clic « Commandes bientôt disponibles » enregistrait malgré tout une commande locale DEMO. Corrigé et recontrôlé sur le site publié. |
+| 7 | Tarifs | Les 7 onglets sélectionnent leur tableau. Incohérence « Ouvert » / inscriptions closes reproduite puis corrigée et recontrôlée sur le site publié. |
 | 8 | Horaires | L'accordéon Mercredi s'ouvre et se referme, avec modification de son état accessible. Le contenu des autres jours est présent. |
 | 9 | Événements | Filtres Tous, Compétitions et Stages testés. La catégorie vide affiche un message ; le filtre Stages affiche ses événements ; retour Tous opérationnel. Les autres filtres et toutes les combinaisons d'archives ne sont pas certifiés. |
 | 10 | Documents | Les 4 liens PDF répondent HTTP 200. Le ROI s'ouvre dans la fenêtre du site avec le lecteur PDF et ses 3 pages visibles. |
